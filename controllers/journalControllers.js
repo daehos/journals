@@ -14,18 +14,19 @@ module.exports = class journalControllers {
   }
   static async createJournal(req, res, next) {
     console.log(req.user.dataValues.id, "<-- ini req usernya ");
-    
+
     try {
       const { content, ai_insight, date } = req.body;
-      const UserdId = req.user.dataValues.id;
-
+      const UserId = req.user.dataValues.id;
 
       const newJournal = await Journal.create({
         content,
         ai_insight,
         date,
-        UserdId,
+        UserId,
       });
+      console.log(newJournal, "<--- journal yang mau dibuat");
+
       res.status(201).json(newJournal);
     } catch (error) {
       console.log(error, "<-- dari create journal");
@@ -53,7 +54,9 @@ module.exports = class journalControllers {
       if (!journal) throw { name: "NotFound", message: "Journal not Found" };
 
       await journal.destroy();
-      res.status(200).json({ message: "Journal deleted successfully" });
+      res.status(200).json({
+        message: `Journal with id: ${journal.id} deleted successfully`,
+      });
     } catch (error) {
       console.log(error, "<-- dari delete journal");
       next(error);
@@ -85,4 +88,24 @@ module.exports = class journalControllers {
       next(error);
     }
   }
-}
+
+  static async journalById(req, res, next) {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+
+      const journal = await Journal.findOne({
+        where: { id, UserId: userId },
+      });
+
+      if (!journal) {
+        throw { name: "NotFound", message: "Journal not Found" };
+      }
+
+      res.status(200).json(journal);
+    } catch (error) {
+      console.log(error, "<-- dari journal by Id");
+      next(error);
+    }
+  }
+};

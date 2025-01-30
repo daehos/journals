@@ -1,6 +1,4 @@
 module.exports = function errorHandler(err, req, res, next) {
-    console.log(err, "error handler >>>");
-  
     switch (err.name) {
       case "SequelizeValidationError":
       case "SequelizeUniqueConstraintError":
