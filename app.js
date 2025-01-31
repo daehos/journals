@@ -9,12 +9,14 @@ const userController = require("./controllers/userController");
 const journalControllers = require("./controllers/journalControllers");
 const authentication = require("./middleware/authentication");
 const app = express();
+const axios = require("axios");
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cors());
 
 app.post("/register", userController.register);
+app.post("/google-login", userController.googleLogin);
 app.post("/login", userController.login);
 app.get("/api/quotes", async (req, res) => {
   try {

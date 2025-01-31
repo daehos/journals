@@ -1,6 +1,7 @@
 const { comparePassword } = require("../helpers/bcrypt");
 const { signToken } = require("../helpers/jwt");
 const { User } = require("../models");
+const { OAuth2Client } = require("google-auth-library");
 const jwt = require("jsonwebtoken");
 module.exports = class userController {
   static async register(req, res, next) {
@@ -46,6 +47,60 @@ module.exports = class userController {
     } catch (error) {
       next(error);
       console.log(error, "<-- error dari login");
+    }
+  }
+
+  static async googleLogin(req, res, next) {
+    try {
+      // hooks option
+      const { googletoken } = req.headers;
+
+      const client = new OAuth2Client();
+
+      const ticket = await client.verifyIdToken({
+        idToken: googletoken,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+
+      const payload = ticket.getPayload();
+
+      let user = await User.findOne({
+        where: {
+          email: payload.email,
+        },
+      });
+
+      if (!user) {
+        user = await User.create(
+          {
+            email: payload.email,
+            password: "googlelogin",
+          },
+          {
+            hooks: false,
+          }
+        );
+      } else {
+        if (user.password !== "googlelogin") {
+          throw { name: "GoogleFailed" };
+        }
+      }
+
+      const access_token = signToken({ id: user.id });
+
+      res.status(200).json({
+        access_token,
+      });
+    } catch (err) {
+      console.log(err, "<--- err");
+
+      if (err.name === "GoogleFailed") {
+        res
+          .status(500)
+          .json({ message: "You already registered with our app" });
+      } else {
+        res.status(500).json({ message: "ISE" });
+      }
     }
   }
 };
