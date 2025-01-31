@@ -16,6 +16,18 @@ app.use(cors());
 
 app.post("/register", userController.register);
 app.post("/login", userController.login);
+app.get("/api/quotes", async (req, res) => {
+  try {
+    const { data } = await axios.get(
+      "https://animechan.io/api/v1/quotes/random"
+    );
+    res.json(data);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal mengambil quote", error: error.message });
+  }
+});
 
 app.use(authentication);
 app.get("/journals", journalControllers.getJournals);
